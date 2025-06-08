@@ -97,25 +97,43 @@ def prepare_eval(args, eval_name):
 
     sys_msg += ' You should directly answer the question by choosing the correct option.'
 
+    QUERY_TEMPLATE_MULTICHOICE = """
+    Answer the following multiple choice question. The last line of your response should be of the following format: 'Answer: $LETTER' (without quotes) where LETTER is one of ABCD. Think step by step before answering.
+
+    {Question}
+
+    A) {A}
+    B) {B}
+    C) {C}
+    D) {D}
+    """.strip()
+
     # create_user_prompt
     def create_user_prompt(question: str, options: List[str]):
-        if setting in ['noid']:
-            user_prompt = f"Question: {question.strip()}\nOptions:\n" + \
-                "\n".join([f"{answer}".strip()
-                           for option_id, answer in zip(option_ids, options)]) + \
-                "\nAnswer:"
-        elif setting in ['shuffle_both']:
-            shuffled_option_ids, shuffled_options = shuffle_options_with_ids(option_ids, options)
-            user_prompt = f"Question: {question.strip()}\nOptions:\n" + \
-                "\n".join([f"{option_id}. {answer}".strip()
-                           for option_id, answer in zip(shuffled_option_ids, shuffled_options)]) + \
-                "\nAnswer:"
-        else:
-            user_prompt = f"Question: {question.strip()}\nOptions:\n" + \
-                "\n".join([f"{option_id}. {answer}".strip()
-                           for option_id, answer in zip(option_ids, options)]) + \
-                "\nAnswer:"
-        return user_prompt
+        # if setting in ['noid']:
+        #     user_prompt = f"Question: {question.strip()}\nOptions:\n" + \
+        #         "\n".join([f"{answer}".strip()
+        #                    for option_id, answer in zip(option_ids, options)]) + \
+        #         "\nAnswer:"
+        # elif setting in ['shuffle_both']:
+        #     shuffled_option_ids, shuffled_options = shuffle_options_with_ids(option_ids, options)
+        #     user_prompt = f"Question: {question.strip()}\nOptions:\n" + \
+        #         "\n".join([f"{option_id}. {answer}".strip()
+        #                    for option_id, answer in zip(shuffled_option_ids, shuffled_options)]) + \
+        #         "\nAnswer:"
+        # else:
+        #     user_prompt = f"Question: {question.strip()}\nOptions:\n" + \
+        #         "\n".join([f"{option_id}. {answer}".strip()
+        #                    for option_id, answer in zip(option_ids, options)]) + \
+        #         "\nAnswer:"
+        # return user_prompt
+        return QUERY_TEMPLATE_MULTICHOICE.format(
+            Question=question.strip(),
+            A=options[0],
+            B=options[1],
+            C=options[2],
+            D=options[3],
+        )
 
     # prepare_few_shot_samples
     def prepare_few_shot_samples(subject):

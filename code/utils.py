@@ -168,7 +168,17 @@ def eval_all_samples(eval_fn, eval_samples, name=None, max_num_samples=None, exi
         idx, _ = args
         seed = f"{idx}:20230101".encode("utf-8")
         rng = random.Random(seed)
-        return eval_fn(args, rng)
+        result = eval_fn(args, rng)
+
+        # 印出 prompt 和模型回應（假設 result['data'] 有 prompt 和 output）
+        if 'prompt' in result['data']:
+            print("\n========== PROMPT ==========")
+            print(result['data']['prompt'])
+        if 'output' in result['data']:
+            print("\n========== MODEL OUTPUT ==========")
+            print(result['data']['output'])
+
+        return result
 
     while True:
         try:

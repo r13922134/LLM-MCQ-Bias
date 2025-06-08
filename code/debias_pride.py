@@ -111,6 +111,9 @@ def single_process(args):
     costs = []
     scores = []
     recall_stds = []
+    # 新增：收集每題詳細結果
+    per_sample_results = []
+
     for iter_idx in range(n_iters):
         predictions = []
         labels = []
@@ -134,6 +137,17 @@ def single_process(args):
             predictions.append(np.argmax(debiased))
             cost.append(len(observed))
             labels.append('ABCDE'.index(ideal))
+            # 新增：保存每題prefix資訊
+            per_sample_results.append({
+                "iter": iter_idx,
+                "type": "prefix",
+                "idx": idx,
+                "observed": observed.tolist(),
+                "debiased": debiased.tolist(),
+                "prior": prior.tolist(),
+                "label": ideal,
+                "pred": int(np.argmax(debiased)),
+            })
 
         prior = np.mean(all_priors, axis=0)
 
@@ -144,7 +158,18 @@ def single_process(args):
             predictions.append(np.argmax(debiased))
             cost.append(1)
             labels.append('ABCDE'.index(ideal))
-
+            # 新增：保存每題postfix資訊
+            per_sample_results.append({
+                "iter": iter_idx,
+                "type": "postfix",
+                "idx": idx,
+                "observed": observed.tolist(),
+                "debiased": debiased.tolist(),
+                "prior": prior.tolist(),
+                "label": ideal,
+                "pred": int(np.argmax(debiased)),
+            })
+            
         final_score = np.mean(np.array(predictions) == np.array(labels)) * 100
         scores.append(final_score)
         costs.append(np.mean(cost))
@@ -168,6 +193,12 @@ def single_process(args):
         'acc_std': float(np.std(scores)),
         'cost': float(np.mean(costs)),
     }
+        # 新增：每個組合都存一份 jsonl
+    detail_save_path = f"{SAVE_PATH}/details_{num_shots}s_{model}_{source_task}.jsonl"
+    with open(detail_save_path, "w") as fout:
+        for item in per_sample_results:
+            fout.write(json.dumps(item, ensure_ascii=False) + "\n")
+
     return res
 
 
